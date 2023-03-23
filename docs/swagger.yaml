@@ -1,0 +1,38 @@
+info:
+  contact: {}
+paths:
+  /incoming-request:
+    get:
+      consumes:
+      - application/json
+      description: Обработка входящего запроса на основе предоставленных параметров.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: Обработка входящего запроса.
+      tags:
+      - Обработчик запрсоов.
+  /reset-cache/:prefix:
+    delete:
+      consumes:
+      - application/json
+      description: Сброс кеша на основе предоставленного префикса.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Сброс кеша.
+      tags:
+      - Сброс кеша.
+swagger: "2.0"

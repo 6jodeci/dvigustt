@@ -1,24 +1,31 @@
-include app.env
+include .env
 export
 
-clickhouse:
-	docker run -d --name dvigus-click -p 8123:8123 --ulimit nofile=262144:262144 yandex/clickhouse-server
+postgres:
+	docker run --name postgres14 -p 5432:5432 -e POSTGRES_USER="$(POSTGRES_USER)" -e POSTGRES_PASSWORD="$(POSTGRES_PASS)" -d postgres:14.4-alpine
 
-make createdb:
-	docker exec -it dvigus-click bash -c 'clickhouse-client --query "CREATE DATABASE IF NOT EXISTS dvigus_db"'
+createdb:
+	docker exec -it postgres14 createdb --username=root --owner=root "$(POSTGRES_NAME)"
 
-make dropdb:
-	docker exec -it dvigus-click bash -c 'clickhouse-client --query "DROP DATABASE IF EXISTS dvigus_db"'
+dropdb:
+	docker exec -it postgres14 dropdb "$(POSTGRES_NAME)"
 
-# Использование clickhouse драйвера для goose
+docker:
+	docker compose up
+
 migratecreate:
-	goose -dir ./migrations clickhouse "$(DB_URL)" create ${name} sql
+	migrate create -ext sql -dir migrations -seq init_db
 
 migrateup:
-	goose -dir ./migrations clickhouse "$(DB_URL)" up
+	migrate -path migrations -database "$(DB_URL)" -verbose up
 
 migratedown:
-	goose -dir ./migrations clickhouse "$(DB_URL)" down
+	migrate -path migrations -database "$(DB_URL)" -verbose down
 
+test:
+	go test -v -cover ./...
 
-.PHONY: clickhouse createdb migratecreate migrateup migratedown
+swagger:
+	swag init -g ./cmd/main.go -o ./docs
+
+.PHONY: postgres createdb dropdb docker migratecreate migrateup migratedown test swagger
